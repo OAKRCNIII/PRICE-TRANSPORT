@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freight Price Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b12;
+  --s1:#0e1220;
+  --s2:#141829;
+  --s3:#1c2238;
+  --border:#1e2640;
+  --border2:#2a3155;
+  --accent:#4f8fff;
+  --green:#00e5a0;
+  --red:#ff4d6d;
+  --text:#dde3f5;
+  --text2:#7d89b0;
+  --text3:#3d4a6b;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans Thai',sans-serif;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
+
+/* LOGIN */
+#login-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:999;
+}
+.login-box{
+  background:var(--s1);border:1px solid var(--border2);
+  border-radius:16px;padding:40px 44px;width:340px;
+}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.login-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 14px var(--accent);
+}
+.login-title{font-size:15px;font-weight:600;color:var(--text)}
+.login-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.lbl{font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.login-input{
+  width:100%;padding:10px 14px;font-size:14px;
+  font-family:var(--mono);letter-spacing:.12em;
+  border:1px solid var(--border2);border-radius:8px;
+  background:var(--s2);color:var(--text);outline:none;
+  margin-bottom:16px;transition:border-color .2s;
+}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{
+  width:100%;padding:11px;font-size:13px;font-weight:500;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--sans);transition:opacity .2s;
+}
+.login-btn:hover{opacity:.82}
+.login-err{font-size:12px;color:var(--red);margin-top:12px;display:none;text-align:center}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.shake{animation:shake .35s ease}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+
+/* topbar */
+.topbar{
+  background:var(--s1);border-bottom:1px solid var(--border);
+  padding:13px 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+}
+.tl{display:flex;align-items:center;gap:10px}
+.tdot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.ttitle{font-size:14px;font-weight:600;color:var(--text)}
+.tsub{font-size:11px;color:var(--text2);margin-top:1px}
+.live-badge{
+  font-size:10px;padding:3px 11px;border-radius:20px;
+  border:1px solid var(--green);color:var(--green);
+  font-family:var(--mono);letter-spacing:.06em;display:flex;align-items:center;gap:6px;
+}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:blink 1.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* main */
+.main{padding:20px 24px;display:grid;gap:14px;max-width:1080px;margin:0 auto;width:100%}
+
+/* kpi */
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;position:relative;overflow:hidden;
+}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
+.kpi.k-green::after{background:var(--green)}
+.kpi.k-red::after{background:var(--red)}
+.kpi-label{font-size:10px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em}
+.kpi-val{font-size:20px;font-weight:600;font-family:var(--mono);color:var(--text)}
+.kpi-val.g{color:var(--green)}
+.kpi-val.r{color:var(--red)}
+.kpi-unit{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+
+/* two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+
+/* card */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.card-title{
+  font-size:10px;font-weight:500;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:16px;display:flex;align-items:center;gap:7px;
+}
+.card-title::before{
+  content:'';display:inline-block;width:3px;height:12px;
+  background:var(--accent);border-radius:2px;flex-shrink:0;
+}
+
+/* form */
+.fg{margin-bottom:10px}
+.fl{font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.fi{
+  width:100%;padding:8px 11px;font-size:13px;font-family:var(--mono);
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--s2);color:var(--text);outline:none;
+  transition:border-color .15s;
+}
+.fi:focus{border-color:var(--accent)}
+.fi.ro{color:var(--text2)}
+select.fi{appearance:none;cursor:pointer}
+.fx2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+
+/* breakdown */
+hr.div{border:none;border-top:1px solid var(--border);margin:14px 0}
+.brow{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--text2)}
+.brow span:last-child{color:var(--text);font-family:var(--mono)}
+.brow.tot{border-top:1px solid var(--border);margin-top:6px;padding-top:10px;color:var(--text);font-weight:500}
+.brow.tot span:last-child{color:var(--accent);font-size:15px}
+
+/* table */
+.tbl-wrap{max-height:500px;overflow-y:auto;margin-top:2px}
+.tbl-wrap::-webkit-scrollbar{width:4px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead{position:sticky;top:0;background:var(--s1)}
+th{
+  font-size:10px;color:var(--text2);text-align:left;
+  padding:6px 8px;border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:500;
+}
+th:last-child{text-align:right;width:90px}
+td{
+  padding:7px 8px;border-bottom:1px solid var(--border);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+td:last-child{text-align:right;font-family:var(--mono);color:var(--accent);font-weight:500}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--s2)}
+.zero-val{color:var(--text3)}
+
+/* footer */
+.footer{text-align:center;font-size:11px;color:var(--text3);padding:20px;font-family:var(--mono)}
+
+/* animation */
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fadein{animation:fadein .4s ease both}
+
+@media(max-width:700px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .main{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-dot"></div>
+      <div>
+        <div class="login-title">Freight Price Calculator</div>
+        <div class="login-sub">กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน</div>
+      </div>
+    </div>
+    <div class="lbl">รหัสผ่าน</div>
+    <input class="login-input" type="password" id="pwd-input" placeholder="••••••••" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="login-err">รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tl">
+      <div class="tdot"></div>
+      <div>
+        <div class="ttitle">Freight Price Calculator</div>
+        <div class="tsub">คำนวณราคาขาย · ค่าระวาง &amp; ขนส่ง</div>
+      </div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+  </div>
+
+  <div class="main">
+
+    <div class="kpi-row fadein">
+      <div class="kpi">
+        <div class="kpi-label">ต้นทุนรวม</div>
+        <div class="kpi-val" id="kpi-cost">0</div>
+        <div class="kpi-unit">THB</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ราคาขาย</div>
+        <div class="kpi-val" id="kpi-sell">0</div>
+        <div class="kpi-unit">THB</div>
+      </div>
+      <div class="kpi" id="kpi-profit-card">
+        <div class="kpi-label">กำไร / ขาดทุน</div>
+        <div class="kpi-val" id="kpi-profit">0</div>
+        <div class="kpi-unit">THB</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ค่าดำเนินการ</div>
+        <div class="kpi-val">20,050</div>
+        <div class="kpi-unit">THB · คงที่</div>
+      </div>
+    </div>
+
+    <div class="two-col fadein" style="animation-delay:.1s">
+
+      <!-- INPUT CARD -->
+      <div class="card">
+        <div class="card-title">ข้อมูล Input</div>
+
+        <div class="fg">
+          <div class="fl">อัตราแลกเปลี่ยน USD / RM</div>
+          <input class="fi" type="number" id="usd_rm" value="4.45" step="0.01" min="0">
+        </div>
+        <div class="fg">
+          <div class="fl">อัตราแลกเปลี่ยน RM / THB</div>
+          <input class="fi" type="number" id="rm_thb" value="7.80" step="0.01" min="0">
+        </div>
+        <div class="fg">
+          <div class="fl">ค่าระวางเรือ (USD)</div>
+          <input class="fi" type="number" id="freight_usd" value="0" step="1" min="0">
+        </div>
+        <div class="fx2">
+          <div>
+            <div class="fl">= RM</div>
+            <input class="fi ro" type="number" id="freight_rm" readonly>
+          </div>
+          <div>
+            <div class="fl">= THB</div>
+            <input class="fi ro" type="number" id="freight_thb" readonly>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">โรงงาน / ค่าขนส่งรถบรรทุก</div>
+          <select class="fi" id="factory"></select>
+        </div>
+        <div class="fg">
+          <div class="fl">ค่าขนส่ง (THB/เที่ยว)</div>
+          <input class="fi ro" type="number" id="transport" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">ราคาขายลูกค้า (THB)</div>
+          <input class="fi" type="number" id="sell_price" value="0" step="100" min="0">
+        </div>
+
+        <hr class="div">
+        <div class="brow"><span>ค่าระวางเรือ (THB)</span><span id="b-freight">0</span></div>
+        <div class="brow"><span>ค่าดำเนินการ</span><span>20,050</span></div>
+        <div class="brow"><span>ค่าขนส่งรถบรรทุก</span><span id="b-tr">0</span></div>
+        <div class="brow tot"><span>รวมต้นทุน</span><span id="b-total">0</span></div>
+      </div>
+
+      <!-- TABLE CARD -->
+      <div class="card">
+        <div class="card-title">ตารางค่าขนส่งแยกตามโรงงาน</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>โรงงาน</th><th>฿/เที่ยว</th></tr></thead>
+            <tbody id="price-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">Freight Price Calculator &nbsp;·&nbsp; RCN Logistics &nbsp;·&nbsp; 2026</div>
+</div>
+
+<script>
+const PASS = 'RCN2026';
+const FIXED = 20050;
+
+const factories = [
+  {name:"ทุ่งหลวง / บ้านส้อง / วรเกียรติ์ (โรงเก่า)", t:9000},
+  {name:"ส.จันดี ฉวาง / ไทยนคร", t:8500},
+  {name:"นาวาพารา", t:8400},
+  {name:"ศรีเจริญทรัพย์", t:7500},
+  {name:"บิ๊กเกอร์ วู้ด", t:7500},
+  {name:"สวนจันทร์", t:7500},
+  {name:"นาเมืองเพชร", t:7300},
+  {name:"ที.เอส.โอ.", t:7300},
+  {name:"ปัตตานี", t:6900},
+  {name:"J.M.1988 / ชะอวด", t:6800},
+  {name:"พี.อาร์. วู้ด (ยะลา)", t:6600},
+  {name:"ยะลาSP", t:6500},
+  {name:"กนกทอง", t:4900},
+  {name:"เอส.เอช.แอล (รัตภูมิ)", t:4600},
+  {name:"ส.จันดี พระแสง", t:0},
+  {name:"เฉินต้าวู้ด", t:0},
+  {name:"เดลต้าวู้ด", t:0},
+  {name:"วรเกียรติ์ (โรงใหม่)", t:0},
+  {name:"วินวิน", t:0},
+  {name:"ส.ร่อนพิบูลย์", t:0},
+  {name:"นครศรีพาราวู้ด", t:0},
+  {name:"นราพาราวู้ด", t:0},
+  {name:"แอล.แอช.อินดัสทรีย์", t:0},
+  {name:"ไทยหมื่นรุ่ง", t:0},
+  {name:"อัลฟ่าวู้ด", t:0},
+];
+
+function doLogin() {
+  const val = document.getElementById('pwd-input').value;
+  const err = document.getElementById('login-err');
+  if (val === PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  } else {
+    err.style.display = 'block';
+    const box = document.querySelector('.login-box');
+    box.classList.remove('shake');
+    void box.offsetWidth;
+    box.classList.add('shake');
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pwd-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  const sel = document.getElementById('factory');
+  factories.forEach((f, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = f.name + (f.t ? ' (' + f.t.toLocaleString() + ' ฿)' : ' — ยังไม่มีราคา');
+    sel.appendChild(o);
+  });
+
+  const tbody = document.getElementById('price-table');
+  factories.forEach(f => {
+    const tr = document.createElement('tr');
+    const val = f.t ? f.t.toLocaleString() : '<span class="zero-val">—</span>';
+    tr.innerHTML = `<td title="${f.name}">${f.name}</td><td>${val}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calc));
+  calc();
+});
+
+function fmt(n) { return Math.round(n).toLocaleString('th-TH'); }
+
+function calc() {
+  const usdRm = parseFloat(document.getElementById('usd_rm').value) || 0;
+  const rmThb = parseFloat(document.getElementById('rm_thb').value) || 0;
+  const fUsd  = parseFloat(document.getElementById('freight_usd').value) || 0;
+  const sell  = parseFloat(document.getElementById('sell_price').value) || 0;
+  const fi    = parseInt(document.getElementById('factory').value);
+  const tr    = factories[fi].t;
+
+  const fRm   = fUsd * usdRm;
+  const fThb  = fRm * rmThb;
+  const cost  = fThb + FIXED + tr;
+  const profit = sell - cost;
+
+  document.getElementById('freight_rm').value  = Math.round(fRm);
+  document.getElementById('freight_thb').value = Math.round(fThb);
+  document.getElementById('transport').value   = tr;
+  document.getElementById('kpi-cost').textContent  = fmt(cost);
+  document.getElementById('kpi-sell').textContent  = fmt(sell);
+  document.getElementById('kpi-profit').textContent = fmt(profit);
+
+  const pc = document.getElementById('kpi-profit-card');
+  const pv = document.getElementById('kpi-profit');
+  pc.className = 'kpi' + (profit > 0 ? ' k-green' : profit < 0 ? ' k-red' : '');
+  pv.className = 'kpi-val' + (profit > 0 ? ' g' : profit < 0 ? ' r' : '');
+
+  document.getElementById('b-freight').textContent = fmt(fThb);
+  document.getElementById('b-tr').textContent      = fmt(tr);
+  document.getElementById('b-total').textContent   = fmt(cost);
+}
+</script>
+</body>
+</html>
